@@ -36,7 +36,7 @@
 
 ---
 
-## 一、目录结构
+## 1. 目录结构
 
 ```
 .
@@ -82,7 +82,7 @@
 
 ---
 
-## 二、日常运维
+## 2. 日常运维
 
 ```bash
 cd ~/bot
@@ -115,7 +115,7 @@ deploy\tunnel.bat
 
 ---
 
-## 三、配置说明（`~/bot/.env`）
+## 3. 配置说明（`~/bot/.env`）
 
 ```ini
 HOST=127.0.0.1          # 宿主机运行时的值；容器内由 compose 覆盖为 0.0.0.0:8080
@@ -138,7 +138,7 @@ LLM_MODEL=deepseek-flash
 
 ---
 
-## 三点五、多个人格与切换
+## 3.5 多个人格与切换
 
 机器人支持多个人格，**按会话独立**（每个群、每个私聊互不影响），切换后重启仍保持。
 
@@ -214,7 +214,7 @@ python3 -m json.tool ~/bot/data/bot/personas.json
 
 ---
 
-## 三点六、联网搜索与发图
+## 3.6 联网搜索与发图
 
 **开箱即用，不需要任何 API Key。** 天气走 Open-Meteo，搜索走 Bing：
 
@@ -302,7 +302,7 @@ docker exec nonebot python /app/scripts/test_tools.py --offline
 
 ---
 
-## 三点七、今日运势
+## 3.7 今日运势
 
 ```
 /运势            看自己的
@@ -342,7 +342,7 @@ docker exec nonebot python /app/scripts/test_fortune.py
 
 ---
 
-## 三点八、Web 管理台
+## 3.8 Web 管理台
 
 浏览器打开 **`http://127.0.0.1:18080/admin`**（先跑 `deploy\tunnel.bat` 开隧道）
 
@@ -421,7 +421,7 @@ bash ~/bot/deploy/test-admin-write.sh   # 写操作、保护性校验、真实�
 
 ---
 
-## 三点九、读图（视觉输入）
+## 3.9 读图（视觉输入）
 
 **用户直接发图片，机器人看得懂。** 不需要任何额外配置——只要模型支持视觉。
 
@@ -539,7 +539,7 @@ LLM_MAX_IMAGE_BYTES=4000000  # 单张图大小上限
 
 ---
 
-## 四、从零部署到新服务器
+## 4. 从零部署到新服务器
 
 ```bash
 # 1. 上传代码到 ~/bot（保持目录结构）
@@ -559,7 +559,7 @@ OneBot 反向 WS 配置已写在 `data/napcat/config/onebot11_<QQ号>.json` 里�
 
 ---
 
-## 五、资源占用（实测）
+## 5. 资源占用（实测）
 
 | 项目 | 数值 |
 |---|---|
@@ -576,7 +576,7 @@ OneBot 反向 WS 配置已写在 `data/napcat/config/onebot11_<QQ号>.json` 里�
 
 ---
 
-## 六、常见问题
+## 6. 常见问题
 
 | 现象 | 原因 / 处理 |
 |---|---|
@@ -593,7 +593,7 @@ OneBot 反向 WS 配置已写在 `data/napcat/config/onebot11_<QQ号>.json` 里�
 
 ---
 
-## 七、安全与合规
+## 7. 安全与合规
 
 1. **专用小号**。个人号自动化违反腾讯用户协议，封号是常态。绝不要用主号。
 2. **端口只绑回环**。WebUI 限制在 `127.0.0.1:6099`，公网不可见，无需改阿里云安全组。
@@ -604,7 +604,7 @@ OneBot 反向 WS 配置已写在 `data/napcat/config/onebot11_<QQ号>.json` 里�
 
 ---
 
-## 八、下一步扩展方向
+## 8. 下一步扩展方向
 
 - **持久化上下文**：现在存在进程内存，重启即丢。需要长期记忆时换 Redis / PostgreSQL。
 - **权限管理**：用 `nonebot.permission.SUPERUSER` 保护管理命令。
@@ -614,7 +614,7 @@ OneBot 反向 WS 配置已写在 `data/napcat/config/onebot11_<QQ号>.json` 里�
 
 ---
 
-## 九、验证记录
+## 9. 验证记录
 
 在 **Ubuntu 24.04.4 / Python 3.12 / x86_64** 实测，nonebot2 **2.5.0**、
 nonebot-adapter-onebot **2.4.6**、NapCat **v4.18.30**（内置 QQ 9.9.33-52230）。
