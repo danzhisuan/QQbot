@@ -1,0 +1,100 @@
+# QQ 机器人编排：NapCat（OneBot v11 实现端）+ NoneBot2（业务框架）
+#
+# 当前部署形态：两个服务都跑在阿里云服务器上，通过 botnet 内网直连，
+# 不需要 SSH 隧道，公网也看不到任何机器人端口。
+#
+#   docker compose up -d --build      # 启动
+#   docker compose logs -f nonebot    # 看日志
+#   docker compose ps                 # 看状态
+#
+# NapCat 的 WebUI 只绑定回环地址，通过 SSH 隧道访问：
+#   ssh -L 6099:127.0.0.1:6099 myserver
+#
+# ⚠️ 这台服务器内存紧张（1.6GB，还要跑 MySQL + Java 站点），
+#    因此给容器设了内存上限：宁可机器人被限制，也不要 OOM 杀掉你的数据库。
+
+name: qq-bot
+
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: unless-stopped
+    networks:
+      - botnet
+    # 固化容器网卡 MAC，让 QQ 侧认为始终是同一台设备，降低异地登录风控概率
+    mac_address: "02:42:ac:11:00:02"
+    environment:
+      - NAPCAT_UID=${NAPCAT_UID:-1000}
+      - NAPCAT_GID=${NAPCAT_GID:-1000}
+      - WEBUI_PORT=6099
+      # 快速登录：用已保存的会话自动登录，避免每次重启容器都要重新扫码。
+      # 值在 .env 里的 NAPCAT_ACCOUNT
+      - ACCOUNT=${NAPCAT_ACCOUNT:-}
+    volumes:
+      # QQ 登录态，必须持久化，否则每次重建容器都要重新扫码
+      - ./data/ntqq:/app/.config/QQ
+      - ./data/napcat/config:/app/napcat/config
+      - ./data/napcat/plugins:/app/napcat/plugins
+    ports:
+      # 只绑定回环地址：WebUI 通过 SSH 隧道访问，不暴露到公网，
+      # 因此无需在阿里云安全组放行任何端口。
+      - "127.0.0.1:6099:6099"
+    # 内存上限：最多用 800MB 物理内存，超出部分走 Swap（服务器已加 4GB）
+    mem_limit: 800m
+    memswap_limit: 2g
+    # 停止时给 QQ 30 秒优雅退出，尽量完整保存登录态，
+    # 避免重启后会话失效、需要重新扫码。
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nonebot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nonebot
+    restart: unless-stopped
+    networks:
+      - botnet
+    env_file:
+      - .env
+    # 以宿主机用户的 uid 运行，使挂载出来的 data/ 与 logs/ 双方都可写：
+    # 容器能创建 personas.json，你在宿主机上也能直接编辑它。
+    user: "${NAPCAT_UID:-1000}:${NAPCAT_GID:-1000}"
+    environment:
+      # 覆盖 .env 里的 HOST/PORT：容器内必须监听 0.0.0.0，
+      # 因为该端口不映射到宿主机，公网依然访问不到。
+      - HOST=0.0.0.0
+      - PORT=8080
+      - ENVIRONMENT=prod
+    volumes:
+      - ./data/bot:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - napcat
+    # NapCat 通过 botnet 内网直连：ws://nonebot:8080/onebot/v11/ws
+    ports:
+      # Web 管理台。只绑定回环地址，通过 SSH 隧道访问，公网看不到。
+      # 宿主机 8080 被 nginx 占用，所以映射到 18080。
+      # 访问：http://127.0.0.1:18080/admin
+      - "127.0.0.1:18080:8080"
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket;socket.create_connection(('127.0.0.1',8080),3)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  botnet:
+    driver: bridge

@@ -1,0 +1,36 @@
+[Unit]
+Description=QQ Bot (NoneBot2 + OneBot v11)
+Documentation=file:///home/botuser/bot/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=botuser
+Group=botuser
+WorkingDirectory=/home/botuser/bot
+
+# 不需要 EnvironmentFile：NoneBot 会自己读取工作目录下的 .env
+ExecStart=/home/botuser/bot/.venv/bin/python bot.py
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qq-bot
+# 这台机器内存紧张，限制日志增长速度
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=500
+
+# ---- 安全加固 ----
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/botuser/bot
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

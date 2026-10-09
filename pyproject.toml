@@ -1,0 +1,27 @@
+[project]
+name = "qq-bot"
+version = "0.1.0"
+description = "QQ 群聊机器人：NapCat (OneBot v11) + NoneBot2"
+requires-python = ">=3.10"
+# 依赖统一维护在 requirements.txt，Docker 构建与本地安装共用同一份清单，
+# 避免两处版本漂移。
+dependencies = []
+
+[tool.nonebot]
+# bot.py 通过 nonebot.load_from_toml("pyproject.toml") 读取本节。
+# plugin_dirs 下的所有插件会被自动扫描加载，本项目的插件都放这里。
+plugin_dirs = ["src/plugins"]
+
+# 供 nb-cli 工具链使用（nb adapter 等）；运行时适配器由 bot.py 显式注册。
+adapters = [
+    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
+]
+
+# NoneBot 2.5+ 新格式：从插件市场安装的插件以「包名 = [插件名]」登记在这里。
+# 必须是表（table）而不是数组，写成数组会触发
+# "Legacy project format found!" 警告。
+#
+# 示例：
+#   [tool.nonebot.plugins]
+#   nonebot-plugin-apscheduler = ["nonebot_plugin_apscheduler"]
+[tool.nonebot.plugins]

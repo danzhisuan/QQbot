@@ -1,0 +1,21 @@
+# 绝不把密钥和本地数据打进镜像
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+data/
+logs/
+*.log
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pylibs/
+.tmp/
+
+.idea/
+.vscode/
+*.md
