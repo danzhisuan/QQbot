@@ -285,12 +285,33 @@ python3 -m json.tool ~/bot/data/bot/personas.json
 
 ### 自检
 
+四个脚本，覆盖从「插件能不能加载」到「模型能不能真的回话」：
+
 ```bash
-# 纯逻辑 + 真实联网测试（Bing 免费）
+# 1. 插件加载（最快，先跑这个）
+docker exec nonebot python /app/scripts/smoke_test.py
+
+# 2. 联网搜索 / 天气 / 图片
 docker exec nonebot python /app/scripts/test_tools.py
-# 只测逻辑，不发网络请求
-docker exec nonebot python /app/scripts/test_tools.py --offline
+docker exec nonebot python /app/scripts/test_tools.py --offline   # 不发请求
+
+# 3. LLM 聊天本体（配置 → 提示词 → 真实调用）
+docker exec nonebot python /app/scripts/test_llm.py
+docker exec nonebot python /app/scripts/test_llm.py --offline     # 不花 token
+
+# 4. 今日运势（纯逻辑，确定性）
+docker exec nonebot python /app/scripts/test_fortune.py
 ```
+
+`test_llm.py` 分三层，失败在哪层一眼可见：
+
+| 层 | 测什么 |
+|---|---|
+| **配置** | Key 有没有、模型名、温度、超时、识图是否走独立接口 |
+| **提示词** | 人称/括号规则、行为规则、剧本背景、用户人设、世界书注入、占位符替换 |
+| **真实调用** | 纯文本回复、多轮上下文保持、工具调用（天气） |
+
+**改完提示词或换模型后，跑一次 `test_llm.py` 最省事**——前两层不花 token，能覆盖大部分改错。
 
 ### 排障
 
